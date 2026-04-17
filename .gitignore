@@ -1,0 +1,4 @@
+kernel.elf
+os.img
+build/**/*.o
+disk_root/kernel.elf

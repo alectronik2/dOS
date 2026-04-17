@@ -1,0 +1,9 @@
+{
+    "disksize": 128,
+    "config": "disk_root/config",
+    "initrd": { "type": "cpio", "gzip": true, "directory": "disk_root" },
+    "iso9660": true,
+    "partitions": [
+        { "type": "boot", "size": 16 }
+    ]
+}
