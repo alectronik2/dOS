@@ -26,5 +26,6 @@ build/main.o: \
   src/hal/kbd.d \
   src/kern/ipc.d \
   src/kern/handle.d \
+  src/hal/pci.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

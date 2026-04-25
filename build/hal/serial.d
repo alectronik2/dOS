@@ -25,6 +25,7 @@ build/hal/serial.o: \
   src/kern/vfs.d \
   src/kern/ipc.d \
   src/kern/handle.d \
+  src/hal/pci.d \
   src/mm/aspace.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

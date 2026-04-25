@@ -5,15 +5,9 @@ import hal.serial, hal.cpu, lib.klog, hal.gdt, hal.idt;
 import mm.pfdb, mm.heap, kern.fb, hal.pit, hal.pic;
 import kern.timer, hal.kbd, kern.thread, kern.process;
 import kern.dbg, kern.vfs, kern.ipc, kern.handle;
+import hal.pci;
 
 mixin(hal.limine.BaseRevision!("1"));
-
-private void
-hcf() {
-    for (;;) {
-        asm { "hlt"; }
-    }
-}
 
 __gshared hal.limine.StackSizeRequest stackSizeReq = {
     id: mixin(hal.limine.StackSizeRequestID!()),
@@ -46,23 +40,23 @@ kmain() {
     serial_init();
     logInit();
 
-    if (mixin(hal.limine.BaseRevisionSupported!()) == false) {
-        hcf();
-    }
+    klog!"Hello world!\n";
 
-    if (framebufferReq.response == null
-     || framebufferReq.response.framebufferCount < 1) {
-        hcf();
-    }
+    if (mixin(hal.limine.BaseRevisionSupported!()) == false) hang();
+    if (framebufferReq.response == null||
+        framebufferReq.response.framebufferCount < 1) hang();
+
+    gdt_init();
+    ktrace!"GDT set up.\n";
+    idt_init();
+    ktrace!"IDT set up.\n";
 
     auto framebuffer = framebufferReq.response.framebuffers[0];
-
     foreach (ulong i; 0..100) {
         uint* fbPtr = cast(uint*)framebuffer.address;
         fbPtr[i * (framebuffer.pitch / 4) + i] = 0xffffff;
     }
 
-    klog!"Hello world!\n";
     klog!"Memmap: %i entries at 0x%x\n"(memmapReq.response.entryCount, memmapReq.response.entries);
 
     if( moduleReq.response != null ) {
@@ -71,11 +65,6 @@ kmain() {
             klog!" # -> Path %s, Cmdline %s @ 0x%x\n"(mod.path, mod.cmdline, mod.address);
         }
     }
-
-    gdt_init();
-    ktrace!"GDT set up.\n";
-    idt_init();
-    ktrace!"IDT set up.\n";
 
     fb_init( framebuffer );
 
@@ -96,12 +85,15 @@ kmain() {
     pit_init();
     kbd_init();
 
-    init_handles();
+    handles_init();
     ipc_init();
     //vfs_init();
 
     klog!"<Green>Enabling interrupts ...</>\n";
     enable_interrupts();
+
+    //pciInit();
+    //pciDumpDevices();
 
     klog!"<Blue>Initialization complete.</> Idling.\n";
     for (;;) {

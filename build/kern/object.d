@@ -25,6 +25,7 @@ build/kern/object.o: \
   src/kern/ipc.d \
   src/kern/handle.d \
   src/kern/sync.d \
+  src/hal/pci.d \
   src/mm/aspace.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

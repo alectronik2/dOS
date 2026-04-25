@@ -199,7 +199,7 @@ class Test : KObject {
 __gshared HandleTable htsb;
 
 void
-init_handles() {
+handles_init() {
     htsb = new HandleTable();
     assert(htsb, "HandleTable: initialization failed");
 
