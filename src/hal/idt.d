@@ -228,6 +228,9 @@ syscall_entry() {
         // Save user RSP in PerCpu.user_rsp, load kernel stack
         mov [GS:0x18], RSP;
         mov RSP, [GS:0x10];
+        // SYSCALL does not arrive via CALL, so align the kernel stack
+        // explicitly before handing off to a normal SysV function.
+        and RSP, -16;
 
         // Build SyscallFrame on kernel stack
         // (push order = struct field order reversed, lowest addr = first field)
@@ -452,7 +455,7 @@ isr_handler( Context* ctx ) {
 
         klogf!"<Red>=[ Interrupt ]=====================================================================================</>\n";
         klogf!"%s\n"(exception_name(vec).ptr);
-        klogf!"  vector       =    %16i | error_code     =   %i\n"(vec, ctx.error_code);
+        klogf!"  vector       =   %16i | error_code     =   %i\n"(vec, ctx.error_code);
         klogf!"  RIP          = 0x%016x | EFLAGS         = 0x%016x\n"(ctx.rip, ctx.rflags);
         klogf!"  CR2          = 0x%016x\n"(cr2);
 

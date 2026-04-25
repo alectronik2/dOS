@@ -32,8 +32,7 @@ enum Syscall : ulong {
 }
 
 extern(C) ulong syscall_dispatch( SyscallFrame* frame ) {
-    klog!"Syscall!\n"; return 0;
-    //ktrace!"syscall: num=%d rdi=%x rsi=%x rdx=%x r10=%x r8=%x r9=%x\n"(frame.num, frame.rdi, frame.rsi, frame.rdx, frame.r10, frame.r8, frame.r9);
+    ktrace!"syscall: num=%d rdi=%x rsi=%x rdx=%x r10=%x r8=%x r9=%x\n"(frame.num, frame.rdi, frame.rsi, frame.rdx, frame.r10, frame.r8, frame.r9);
 
     switch (frame.num) {
         case Syscall.Klog:

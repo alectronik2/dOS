@@ -88,8 +88,6 @@ class Thread : KObject {
 
             memcpy( cast(void*)USER_CODE_ADDR, &user_func, 0x100 );
             memcpy( cast(void*)USER_KLOG_MSG_ADDR, USER_KLOG_MSG.ptr, USER_KLOG_MSG.length );
-
-            this.flags |= THREAD_IS_USER_INIT;
         } else {
             this.ctx.cs   = KERNEL_CS;
             this.ctx.ss   = KERNEL_DS;
@@ -125,7 +123,6 @@ enum {
     THREAD_INTERRUPTED  = 1 << 0,
 
     THREAD_USER         = 1 << 1,
-    THREAD_IS_USER_INIT = 1 << 2,
 
     THREAD_ALERTABLE    = 1 << 3,
 }
@@ -183,9 +180,17 @@ current_thread() {
     return self.thread;
 }
 
+bool
+has_ready_threads() {
+    return thread_ready_summary != 0;
+}
+
 private Thread
 find_ready_thread( Thread current, u32 cpu ) {
     if( !thread_ready_summary ) {
+        if( init_thread !is null && init_thread.state != ThreadState.Dead )
+            return init_thread;
+
         klog!"No ready threads!\n";
         return current;
     }
@@ -316,20 +321,46 @@ dispatch() {
         self.rsp0 = kstack_top;
     }
 
-    if( t.flags & THREAD_IS_USER_INIT ) {
-        kdebug!"<Red>Entering user context.</>\n";
-        t.flags &= ~THREAD_IS_USER_INIT;
-        enter_user( &curthread.ctx, &t.ctx );
-    } else
-        context_switch( &curthread.ctx, &t.ctx );
+    context_switch( &curthread.ctx, &t.ctx );
 
     // We resume here when switched back in. curthread (local) is us.
     curthread.state = ThreadState.Running;
 }
 
+private void
+dispatch_from_interrupt() {
+    auto cpu = current_cpu();
+    auto curthread = self.thread;
+
+    auto t = find_ready_thread( curthread, cpu );
+    assert( t );
+
+    self.thread = t;
+
+    if( t == curthread ) {
+        t.state = ThreadState.Running;
+        return;
+    }
+
+    t.state = ThreadState.Running;
+
+    if( t.ctx.cs & 0x3 ) {
+        auto kstack_top = cast(ulong)(t.kernel_stack + t.kernel_stack_size);
+        tss.rsp0 = kstack_top;
+        self.rsp0 = kstack_top;
+    }
+
+    context_enter( &t.ctx );
+}
+
 void
 preempt_thread( Context *ctx ) {
     auto t = current_thread();
+
+    // Early scheduler model: only preempt user mode transparently. Kernel
+    // threads still switch cooperatively through dispatch()/context_switch().
+    if( !(ctx.cs & 0x3) )
+        return;
 
     // Count number of preempted context switches
     t.preempt++;
@@ -349,7 +380,7 @@ preempt_thread( Context *ctx ) {
     t.state = ThreadState.Ready;
     insert_ready_tail( t );
 
-    dispatch();
+    dispatch_from_interrupt();
 }
 
 private void
@@ -374,8 +405,15 @@ save_interrupt_context( Thread t, Context* ctx ) {
     t.ctx.cs     = ctx.cs;
     t.ctx.rflags = ctx.rflags;
 
-    t.ctx.rsp = ctx.rsp;
-    t.ctx.ss  = ctx.ss ? ctx.ss : KERNEL_DS;
+    if( ctx.cs & 0x3 ) {
+        t.ctx.rsp = ctx.rsp;
+        t.ctx.ss  = ctx.ss;
+    } else {
+        // Same-privilege interrupts do not push RSP/SS. Resume with the
+        // stack as it should look after IRETQ consumes RIP, CS and RFLAGS.
+        t.ctx.rsp = cast(u64)&ctx.rflags + u64.sizeof;
+        t.ctx.ss  = KERNEL_DS;
+    }
 }
 
 Status
@@ -536,9 +574,11 @@ context_switch(ThreadContext *old, ThreadContext *new_) {
         lea RAX, [RSP + 8];
         mov [RDI + 0x48], RAX;
 
-        // Load new context
         mov R11, RSI;
+        test byte ptr [R11 + 0x50], 0x3;
+        jnz restore_user;
 
+        // Resume a kernel thread via a direct stack/rip handoff.
         mov R15, [R11 + 0x00];
         mov R14, [R11 + 0x08];
         mov R13, [R11 + 0x10];
@@ -554,53 +594,8 @@ context_switch(ThreadContext *old, ThreadContext *new_) {
 
         mov RAX, [R11 + 0x38];
         jmp RAX;
-    }
-}
 
-extern(C) void
-context_enter( ThreadContext* ctx ) {
-    asm {
-        naked;
-
-        mov R11, RDI;
-        test byte ptr [R11 + 0x50], 0x3;
-        jnz restore_user;
-
-        // Resume a kernel thread by switching to its saved kernel stack and
-        // synthesizing the full long-mode IRET frame there.
-        mov R10, [R11 + 0x48];
-        lea RSP, [R10 - 40];
-        mov RAX, [R11 + 0x38];
-        mov [RSP], RAX;
-        mov RAX, [R11 + 0x50];
-        mov [RSP + 8], RAX;
-        mov RAX, [R11 + 0x40];
-        mov [RSP + 16], RAX;
-        mov RAX, [R11 + 0x48];
-        mov [RSP + 24], RAX;
-        mov RAX, [R11 + 0x58];
-        mov [RSP + 32], RAX;
-
-        mov R15, [R11 + 0x00];
-        mov R14, [R11 + 0x08];
-        mov R13, [R11 + 0x10];
-        mov R12, [R11 + 0x18];
-        mov RDI, [R11 + 0x20];
-        mov RBP, [R11 + 0x28];
-        mov RBX, [R11 + 0x30];
-        mov R9,  [R11 + 0x70];
-        mov R8,  [R11 + 0x78];
-        mov RSI, [R11 + 0x80];
-        mov RDX, [R11 + 0x88];
-        mov RCX, [R11 + 0x90];
-        mov RAX, [R11 + 0x98];
-        mov R10, [R11 + 0x68];
-        mov R11, [R11 + 0x60];
-        iretq;
-
-restore_user:
-        // Resume a user thread by synthesizing an IRET frame on the current
-        // kernel stack and returning to ring 3.
+    restore_user:
         mov AX, [R11 + 0x58];
         mov DS, AX;
         mov ES, AX;
@@ -631,43 +626,43 @@ restore_user:
     }
 }
 
-void
-enter_user(ThreadContext *old, ThreadContext *ctx) {
+extern(C) void
+context_enter( ThreadContext* ctx ) {
     asm {
         naked;
 
-        // Save old context
-        mov [RDI + 0x00], R15;
-        mov [RDI + 0x08], R14;
-        mov [RDI + 0x10], R13;
-        mov [RDI + 0x18], R12;
-        mov [RDI + 0x20], RDI;
-        mov [RDI + 0x28], RBP;
-        mov [RDI + 0x30], RBX;
+        mov R11, RDI;
+        test byte ptr [R11 + 0x50], 0x3;
+        jnz restore_user;
 
-        pushfq;
-        popq [RDI + 0x40];
-        mov qword ptr [RDI + 0x50], 0x08;
-        mov qword ptr [RDI + 0x58], 0x10;
+        // Resume a kernel thread from an interrupt-saved context. The stack
+        // already points at normal kernel code, so restore flags and jump.
+        pushq [R11 + 0x40];
+        popfq;
+        mov R15, [R11 + 0x00];
+        mov R14, [R11 + 0x08];
+        mov R13, [R11 + 0x10];
+        mov R12, [R11 + 0x18];
+        mov RDI, [R11 + 0x20];
+        mov RBP, [R11 + 0x28];
+        mov RBX, [R11 + 0x30];
+        mov RSP, [R11 + 0x48];
 
-        mov RAX, [RSP];
-        mov [RDI + 0x38], RAX;
+        mov RAX, [R11 + 0x38];
+        jmp RAX;
 
-        lea RAX, [RSP + 8];
-        mov [RDI + 0x48], RAX;
-
-        // Load new context
-        mov R11, RSI;
-
+    restore_user:
+        // Resume a user thread by synthesizing an IRET frame on the current
+        // kernel stack and returning to ring 3.
         mov AX, [R11 + 0x58];
         mov DS, AX;
         mov ES, AX;
 
-        pushq [R11 + 0x58]; // SS
-        pushq [R11 + 0x48]; // RSP
-        pushq [R11 + 0x40]; // RFLAGS
-        pushq [R11 + 0x50]; // CS
-        pushq [R11 + 0x38]; // RIP
+        pushq [R11 + 0x58];
+        pushq [R11 + 0x48];
+        pushq [R11 + 0x40];
+        pushq [R11 + 0x50];
+        pushq [R11 + 0x38];
 
         mov R15, [R11 + 0x00];
         mov R14, [R11 + 0x08];

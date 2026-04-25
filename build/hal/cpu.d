@@ -4,11 +4,12 @@ build/hal/cpu.o: \
   src/lib/klog.d \
   src/lib/lock.d \
   src/hal/serial.d \
+  src/kern/fb.d \
+  src/hal/limine.d \
+  src/lib/runtime.d \
   src/mm/heap.d \
   src/mm/pfdb.d \
   src/lib/bitfields.d \
-  src/lib/runtime.d \
-  src/hal/limine.d \
   src/main.d \
   src/hal/gdt.d \
   src/hal/idt.d \
@@ -21,7 +22,6 @@ build/hal/cpu.o: \
   src/hal/pit.d \
   src/kern/sync.d \
   src/kern/vfs.d \
-  src/kern/fb.d \
   src/hal/kbd.d \
   src/kern/ipc.d \
   src/kern/handle.d \

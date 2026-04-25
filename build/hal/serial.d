@@ -3,19 +3,19 @@ build/hal/serial.o: \
   src/object.d \
   src/lib/klog.d \
   src/lib/lock.d \
-  src/mm/heap.d \
+  src/kern/fb.d \
+  src/hal/limine.d \
+  src/lib/runtime.d \
   src/hal/cpu.d \
   src/kern/thread.d \
-  src/lib/runtime.d \
+  src/mm/heap.d \
+  src/mm/pfdb.d \
+  src/lib/bitfields.d \
+  src/main.d \
   src/hal/gdt.d \
   src/hal/idt.d \
   src/kern/dbg.d \
   src/hal/pic.d \
-  src/mm/pfdb.d \
-  src/lib/bitfields.d \
-  src/hal/limine.d \
-  src/main.d \
-  src/kern/fb.d \
   src/hal/pit.d \
   src/kern/timer.d \
   src/hal/kbd.d \

@@ -5,17 +5,17 @@ build/kern/thread.o: \
   src/lib/lock.d \
   src/hal/serial.d \
   src/hal/cpu.d \
+  src/kern/fb.d \
+  src/hal/limine.d \
+  src/lib/runtime.d \
   src/mm/heap.d \
   src/mm/pfdb.d \
   src/lib/bitfields.d \
-  src/lib/runtime.d \
-  src/hal/limine.d \
   src/main.d \
   src/hal/gdt.d \
   src/hal/idt.d \
   src/kern/dbg.d \
   src/hal/pic.d \
-  src/kern/fb.d \
   src/hal/pit.d \
   src/kern/timer.d \
   src/hal/kbd.d \

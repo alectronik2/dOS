@@ -1,6 +1,6 @@
 module lib.klog;
 
-import lib.lock, hal.serial;
+import lib.lock, hal.serial, kern.fb;
 
 public enum LogLevel : ubyte {
     Trace  = 0,
@@ -375,7 +375,7 @@ private uint parseUint(string s) pure {
 
 private void sinkWrite(const(char)* s, uint len) {
     serial_write(s, len);
-    //fb_write_ansi(s, len);
+    fb.write_ansi(s, len);
     version (LogNoRing) {} else ringWrite(s, len);
 }
 

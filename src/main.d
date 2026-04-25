@@ -77,6 +77,8 @@ kmain() {
     idt_init();
     ktrace!"IDT set up.\n";
 
+    fb_init( framebuffer );
+
     //symmap_init();
 
     pfdb_init( memmapReq.response.entryCount, memmapReq.response.entries, hhdmReq.response.offset );
@@ -98,11 +100,13 @@ kmain() {
     ipc_init();
     //vfs_init();
 
-    fb_init( framebuffer );
-
     klog!"<Green>Enabling interrupts ...</>\n";
     enable_interrupts();
 
-    klog!"<Blue>Initialization complete.</> Hanging.\n";
-    hcf();
+    klog!"<Blue>Initialization complete.</> Idling.\n";
+    for (;;) {
+        if( has_ready_threads() )
+            dispatch();
+        asm { hlt; }
+    }
 }
