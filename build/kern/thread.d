@@ -8,6 +8,7 @@ build/kern/thread.o: \
   src/kern/fb.d \
   src/hal/limine.d \
   src/lib/runtime.d \
+  src/lib/str.d \
   src/mm/heap.d \
   src/mm/pfdb.d \
   src/lib/bitfields.d \
@@ -22,10 +23,10 @@ build/kern/thread.o: \
   src/kern/process.d \
   src/kern/object.d \
   src/kern/sync.d \
-  src/kern/vfs.d \
   src/kern/ipc.d \
   src/kern/handle.d \
   src/hal/pci.d \
+  src/vfs/vfs.d \
   src/mm/aspace.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

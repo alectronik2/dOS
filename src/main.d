@@ -4,8 +4,8 @@ static import hal.limine;
 import hal.serial, hal.cpu, lib.klog, hal.gdt, hal.idt;
 import mm.pfdb, mm.heap, kern.fb, hal.pit, hal.pic;
 import kern.timer, hal.kbd, kern.thread, kern.process;
-import kern.dbg, kern.vfs, kern.ipc, kern.handle;
-import hal.pci;
+import kern.dbg, kern.ipc, kern.handle;
+import hal.pci, vfs.vfs;
 
 mixin(hal.limine.BaseRevision!("1"));
 
@@ -87,7 +87,10 @@ kmain() {
 
     handles_init();
     ipc_init();
-    //vfs_init();
+    vfs_init();
+
+    //import lib.str;
+    //string_test();
 
     klog!"<Green>Enabling interrupts ...</>\n";
     enable_interrupts();

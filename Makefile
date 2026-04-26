@@ -40,7 +40,7 @@ DSRCS   := src/hal/cpu.d src/hal/serial.d src/lib/klog.d src/lib/lock.d \
 		   src/mm/aspace.d src/kern/fb.d src/kern/timer.d src/hal/pit.d \
 		   src/kern/thread.d src/kern/object.d src/hal/kbd.d src/kern/process.d \
 		   src/kern/sync.d src/kern/syscall.d src/kern/handle.d src/kern/ipc.d \
-		   src/hal/pci.d
+		   src/hal/pci.d src/lib/str.d src/vfs/vfs.d
 SSRCS   := src/hal/asm.S
 
 DOBJS   := $(DSRCS:src/%.d=build/%.o) build/object.o

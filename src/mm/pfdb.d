@@ -345,7 +345,7 @@ pfdb_init( ulong count, MemmapEntry** entries, ulong hhdm_offset ) {
     // enable global pages
     cpu_enable_pge();
 
-    m.kernel_pml4 = read_cr3();
+    m.kernel_pml4 = read_cr3() & PADDR_4K_MASK;
 
     m.entry_count = count;
     m.entries     = entries;
@@ -388,7 +388,7 @@ pfdb_init( ulong count, MemmapEntry** entries, ulong hhdm_offset ) {
         pfdb_mark_range_free( rbase, rend );
     }
 
-    //test_paging();
+    test_paging();
 }
 
 void
@@ -405,4 +405,14 @@ test_paging() {
     auto p2 = cast(ulong*)0x40_0000;
     *p2 = 0xDEADBABE;
     klog!" - mapping, value: 0x%x\n"(*p);
+
+    import lib.runtime;
+
+    auto pml4 = alloc_page();
+    ulong ret;
+    auto pml4_va = p2v( pml4 );
+    memcpy( cast(void*)(pml4_va+2048), cast(void*)p2v(m.kernel_pml4 + 2048), 2048 );
+    m.kernel_pml4 = pml4;
+    write_cr3( pml4 );
+    klog!"<bg:red>CR3 updated</>\n";
 }

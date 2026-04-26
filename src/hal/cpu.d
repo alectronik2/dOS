@@ -68,6 +68,14 @@ read_cr3() {
 }
 
 void
+write_cr3( u64 val ) {
+    asm {
+        mov RAX, val;
+        mov CR3, RAX;
+    }
+}
+
+void
 wrmsr( u32 msr, u64 value ) {
     auto lo = cast(u32)(value & 0xFFFF_FFFF);
     auto hi = cast(u32)(value >> 32);

@@ -1,6 +1,6 @@
 module lib.klog;
 
-import lib.lock, hal.serial, kern.fb;
+import lib.lock, hal.serial, kern.fb, lib.str;
 
 public enum LogLevel : ubyte {
     Trace  = 0,
@@ -328,6 +328,11 @@ private template emitFmt(string fmt, size_t pos, Args...)
                                 if (sp is null) b.puts("(null)");
                                 else { uint n = 0; while (sp[n]) n++;
                                        b.puts(sp, n); }
+                            }
+                        }
+                        else static if( spec == 'S' ) {
+                            static if( is(A0 == String) ) {
+                                b.puts( cast(const(char)*)args[0].toString().ptr, cast(uint)args[0].length );
                             }
                         }
                         else static if (spec == 'p')

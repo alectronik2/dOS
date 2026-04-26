@@ -18,14 +18,15 @@ build/mm/pfdb.o: \
   src/kern/timer.d \
   src/hal/pit.d \
   src/kern/sync.d \
-  src/kern/vfs.d \
   src/kern/fb.d \
   src/hal/limine.d \
+  src/lib/str.d \
   src/lib/bitfields.d \
   src/main.d \
   src/hal/kbd.d \
   src/kern/ipc.d \
   src/kern/handle.d \
   src/hal/pci.d \
+  src/vfs/vfs.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

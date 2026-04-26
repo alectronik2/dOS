@@ -1,6 +1,6 @@
 module kern.process;
 
-import kern.object, kern.thread, kern.vfs;
+import kern.object, kern.thread;
 
 class Process : KObject {
     string name;
@@ -9,7 +9,7 @@ class Process : KObject {
 
     Thread threads;
 
-    Inode* cwd;  // current working directory (VFS inode)
+    //Inode* cwd;  // current working directory (VFS inode)
 }
 
 __gshared Process kernel_process;

@@ -1,6 +1,6 @@
 module kern.object;
 
-import kern.thread, kern.timer, kern.sync;
+import kern.thread, kern.timer, kern.sync, lib.klog;
 
 enum WaitType {
     All,
@@ -10,10 +10,27 @@ class KObject {
     bool signaled;
 
     u16 handle_count;
+    ulong refcount = 1;
     u16 lock_count;
 
     WaitBlock *waitlist_head;
     WaitBlock *waitlist_tail;
+
+    KObject
+    acquire() {
+        ++refcount;
+
+        return this;
+    }
+
+    void
+    drop() {
+        assert( refcount > 0 );
+        if( --refcount == 0 ) {
+            ktrace!"Dropping object\n";
+            kdestroy( this );
+        }
+    }
 
     void
     retain() {

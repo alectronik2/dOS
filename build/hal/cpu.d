@@ -7,6 +7,7 @@ build/hal/cpu.o: \
   src/kern/fb.d \
   src/hal/limine.d \
   src/lib/runtime.d \
+  src/lib/str.d \
   src/mm/heap.d \
   src/mm/pfdb.d \
   src/lib/bitfields.d \
@@ -21,11 +22,11 @@ build/hal/cpu.o: \
   src/kern/timer.d \
   src/hal/pit.d \
   src/kern/sync.d \
-  src/kern/vfs.d \
   src/hal/kbd.d \
   src/kern/ipc.d \
   src/kern/handle.d \
   src/hal/pci.d \
+  src/vfs/vfs.d \
   src/mm/aspace.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

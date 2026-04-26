@@ -21,11 +21,12 @@ build/kern/object.o: \
   src/kern/timer.d \
   src/hal/kbd.d \
   src/kern/process.d \
-  src/kern/vfs.d \
   src/kern/ipc.d \
   src/kern/handle.d \
   src/kern/sync.d \
   src/hal/pci.d \
+  src/vfs/vfs.d \
+  src/lib/str.d \
   src/mm/aspace.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d

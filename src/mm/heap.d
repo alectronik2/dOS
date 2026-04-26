@@ -175,8 +175,12 @@ krealloc(T)( T* ptr, size_t new_size = T.sizeof ) {
 
 void
 kfree( void* ptr ) {
+    if( ptr == null ) {
+        kpanic!"Null freed.\n";
+    }
+
     PageFrame *t = v2pf(cast(ulong)ptr);
-    ktrace!"kfree: freeing pointer 0x%x with tag %i\n"(ptr, t.tag);
+    //ktrace!"kfree: freeing pointer 0x%x with tag %i\n"(ptr, t.tag);
 
     if( t.tag == FrameType.Malloc ) {
         auto bucket = t.size;

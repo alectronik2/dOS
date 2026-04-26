@@ -523,7 +523,7 @@ thread_init() {
     auto t2 = new Thread( kernel_process, &thread2, cast(void*)0xBEEF );
     klog!"Created thread %x with priority %i\n"(t2.arg, t2.priority);
 
-    auto t4 = new Thread( kernel_process, null, null, THREAD_USER );
+    //auto t4 = new Thread( kernel_process, null, null, THREAD_USER );
 }
 
 struct ThreadContext {

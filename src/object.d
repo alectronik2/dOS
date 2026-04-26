@@ -29,6 +29,8 @@ alias paddr = u64;
 alias vaddr = u64;
 
 alias Handle = u64;
+alias devno_t = u64;
+alias offset_t = u64;
 
 enum Status {
     Ok = 0,
@@ -47,6 +49,8 @@ enum Status {
     NoSpace,
     ReadOnly,
 }
+
+@property bool failure( Status status ) => status != Status.Ok;
 
 alias size_t    = typeof(int.sizeof);
 alias ptrdiff_t = typeof(cast(void*) 0 - cast(void*) 0);
@@ -1218,6 +1222,19 @@ bool opEquals(Object lhs, Object rhs) {
     if (lhs is rhs) return true;
     if (lhs is null || rhs is null) return false;
     return lhs.opEquals(rhs);
+}
+
+int __cmp(T1, T2)(T1 lhs, T2 rhs) {
+    static if (is(T1 : Object) && is(T2 : Object)) {
+        auto lhsObj = cast(Object) lhs;
+        auto rhsObj = cast(Object) rhs;
+
+        if (lhsObj is rhsObj) return 0;
+        if (lhsObj is null) return -1;
+        if (rhsObj is null) return 1;
+    }
+
+    return lhs.opCmp(rhs);
 }
 
 bool _xopEquals(in void*, in void*) {

@@ -1,5 +1,5 @@
-build/main.o: \
-  src/main.d \
+build/lib/str.o: \
+  src/lib/str.d \
   src/object.d \
   src/lib/klog.d \
   src/lib/lock.d \
@@ -11,22 +11,22 @@ build/main.o: \
   src/mm/pfdb.d \
   src/lib/bitfields.d \
   src/hal/limine.d \
-  src/mm/aspace.d \
-  src/kern/dbg.d \
+  src/main.d \
   src/hal/gdt.d \
   src/hal/idt.d \
+  src/kern/dbg.d \
   src/hal/pic.d \
+  src/kern/fb.d \
+  src/hal/pit.d \
+  src/kern/timer.d \
+  src/hal/kbd.d \
   src/kern/process.d \
   src/kern/object.d \
-  src/kern/timer.d \
-  src/hal/pit.d \
   src/kern/sync.d \
-  src/kern/fb.d \
-  src/lib/str.d \
-  src/hal/kbd.d \
   src/kern/ipc.d \
   src/kern/handle.d \
   src/hal/pci.d \
   src/vfs/vfs.d \
+  src/mm/aspace.d \
   /usr/include/dlang/ldc/ldc/intrinsics.di \
   /usr/include/dlang/ldc/core/volatile.d
