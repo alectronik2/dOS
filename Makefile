@@ -92,7 +92,7 @@ iso: $(KERNEL)
 	@mkdir -p iso_root/EFI/BOOT
 	@cp various/limine/limine-bios.sys various/limine/limine-bios-cd.bin iso_root/
 	@xorriso -as mkisofs -b limine-bios-cd.bin -no-emul-boot -boot-load-size 4 \
-			 -boot-info-table --protective-msdos-label \
+			 -boot-info-table \
 			iso_root -o $(ISO)
 	@./various/limine/limine bios-install $(ISO)
 	@echo "  XORRISO $(ISO)"
